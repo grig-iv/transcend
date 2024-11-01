@@ -14,9 +14,9 @@ type size struct {
 }
 
 var (
-	headerStyle        = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorGreen)
-	entryStyle         = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorWhite)
-	selectedEntryStyle = tcell.StyleDefault.Background(tcell.ColorLightSkyBlue).Foreground(tcell.ColorBlack)
+	headerStyle     = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorGreen)
+	fileStyle       = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorWhite)
+	cursorFileStyle = tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 )
 
 func (ui *ui) init(screen tcell.Screen) {
@@ -32,7 +32,10 @@ func (ui *ui) render(app *app) {
 	ui.screen.Clear()
 
 	ui.renderHeader(app)
-	ui.renderEntries(app)
+
+	for i, f := range app.nav.files {
+		ui.renderFile(app, f, i)
+	}
 
 	ui.screen.Show()
 }
@@ -43,17 +46,12 @@ func (ui *ui) renderHeader(app *app) {
 	}
 }
 
-func (ui *ui) renderEntries(app *app) {
-	for i, f := range app.nav.files {
-		style := entryStyle
-		if i == app.nav.cursor {
-			style = selectedEntryStyle
-			for c := range ui.screenSize.width {
-				ui.screen.SetContent(c, i+1, ' ', nil, style)
-			}
-		}
-		for c, r := range f.Name() {
-			ui.screen.SetContent(c, i+1, r, nil, style)
+func (ui *ui) renderFile(app *app, file *file, index int) {
+	for c, r := range file.Name() {
+		if index != app.nav.cursor {
+			ui.screen.SetContent(c, index+1, r, nil, fileStyle)
+		} else {
+			ui.screen.SetContent(c, index+1, r, nil, cursorFileStyle)
 		}
 	}
 }

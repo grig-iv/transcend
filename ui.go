@@ -14,9 +14,10 @@ type size struct {
 }
 
 var (
-	headerStyle     = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorGreen)
-	fileStyle       = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorWhite)
-	cursorFileStyle = tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	headerStyle        = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorGreen)
+	fileStyle          = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorWhite)
+	cursorFileStyle    = tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	selectedIndication = tcell.StyleDefault.Background(tcell.ColorYellow)
 )
 
 func (ui *ui) init(screen tcell.Screen) {
@@ -47,11 +48,24 @@ func (ui *ui) renderHeader(app *app) {
 }
 
 func (ui *ui) renderFile(app *app, file *file, index int) {
+	style := fileStyle
+	if index == app.nav.cursor {
+		style = cursorFileStyle
+	}
+
+	if app.isSelected(file) {
+		ui.screen.SetContent(0, index+1, ' ', nil, selectedIndication)
+	} else {
+		ui.screen.SetContent(0, index+1, ' ', nil, style)
+	}
+
+	lastPos := 0
 	for c, r := range file.Name() {
-		if index != app.nav.cursor {
-			ui.screen.SetContent(c, index+1, r, nil, fileStyle)
-		} else {
-			ui.screen.SetContent(c, index+1, r, nil, cursorFileStyle)
-		}
+		ui.screen.SetContent(c+1, index+1, r, nil, style)
+		lastPos = c
+	}
+
+	for c := range ui.screenSize.width {
+		ui.screen.SetContent(lastPos+c+2, index+1, ' ', nil, style)
 	}
 }

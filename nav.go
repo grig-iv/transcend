@@ -52,6 +52,10 @@ func (n *nav) intoDir() {
 	n.cursor = 0
 }
 
+func (n *nav) cursorFile() *file {
+	return n.files[n.cursor]
+}
+
 func (n *nav) chDir(path string) {
 	if n.currDir != nil && n.currDir.path == path {
 		return

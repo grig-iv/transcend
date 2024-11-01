@@ -56,6 +56,10 @@ func main() {
 			case tcell.KeyRight:
 				app.nav.intoDir()
 			}
+			switch ev.Rune() {
+			case ' ':
+				app.toggleSelection(app.nav.cursorFile())
+			}
 		case *tcell.EventResize:
 			ui.onResize()
 		}

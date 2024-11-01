@@ -1,21 +1,19 @@
 package main
 
 import (
-	"io/fs"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
 )
 
 type nav struct {
-	currDir string
-	entries []fs.FileInfo
+	currDir *file
+	files   []*file
 	cursor  int
 }
 
 func (n *nav) init() {
-	n.entries = make([]fs.FileInfo, 0)
+	n.files = make([]*file, 0)
 	n.chDir("/home/grig/sources/transcend")
 }
 
@@ -28,7 +26,7 @@ func (n *nav) cursorPrev() {
 }
 
 func (n *nav) cursorNext() {
-	if n.cursor == len(n.entries)-1 {
+	if n.cursor == len(n.files)-1 {
 		return
 	}
 
@@ -37,9 +35,9 @@ func (n *nav) cursorNext() {
 
 func (n *nav) upDir() {
 	prevDir := n.currDir
-	n.chDir(path.Dir(n.currDir))
-	for i, e := range n.entries {
-		if filepath.Join(n.currDir, e.Name()) == prevDir {
+	n.chDir(n.currDir.parentPath())
+	for i, f := range n.files {
+		if f.path == prevDir.path {
 			n.cursor = i
 			break
 		}
@@ -47,38 +45,72 @@ func (n *nav) upDir() {
 }
 
 func (n *nav) intoDir() {
-	curr := n.entries[n.cursor]
+	curr := n.files[n.cursor]
 	if curr.IsDir() {
-		n.chDir(filepath.Join(n.currDir, curr.Name()))
+		n.chDir(filepath.Join(n.currDir.path, curr.Name()))
 	}
 	n.cursor = 0
 }
 
 func (n *nav) chDir(path string) {
-	if n.currDir == path {
+	if n.currDir != nil && n.currDir.path == path {
 		return
 	}
 
-	n.currDir = path
-	err := os.Chdir(n.currDir)
+	var err error
+
+	n.currDir, err = newFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	f, err := os.Open(n.currDir)
+	err = os.Chdir(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	n.files, err = readdir(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func readdir(path string) ([]*file, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
 	names, err := f.Readdirnames(-1)
 	f.Close()
 
-	n.entries = n.entries[:0]
+	files := make([]*file, 0, len(names))
 	for _, fname := range names {
-		lstat, err := os.Lstat(filepath.Join(path, fname))
-		if err != nil {
-			continue
+		file, err := newFile(filepath.Join(path, fname))
+		if err == nil {
+			files = append(files, file)
 		}
-		n.entries = append(n.entries, lstat)
 	}
+
+	return files, err
+}
+
+type file struct {
+	os.FileInfo
+	path string
+}
+
+func newFile(path string) (*file, error) {
+	lstat, err := os.Lstat(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return &file{
+		FileInfo: lstat,
+		path:     path,
+	}, nil
+}
+
+func (f *file) parentPath() string {
+	return filepath.Dir(f.path)
 }

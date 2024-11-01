@@ -38,13 +38,13 @@ func (ui *ui) render(app *app) {
 }
 
 func (ui *ui) renderHeader(app *app) {
-	for i, r := range app.nav.currDir {
+	for i, r := range app.nav.currDir.path {
 		ui.screen.SetContent(i, 0, r, nil, headerStyle)
 	}
 }
 
 func (ui *ui) renderEntries(app *app) {
-	for i, e := range app.nav.entries {
+	for i, f := range app.nav.files {
 		style := entryStyle
 		if i == app.nav.cursor {
 			style = selectedEntryStyle
@@ -52,7 +52,7 @@ func (ui *ui) renderEntries(app *app) {
 				ui.screen.SetContent(c, i+1, ' ', nil, style)
 			}
 		}
-		for c, r := range e.Name() {
+		for c, r := range f.Name() {
 			ui.screen.SetContent(c, i+1, r, nil, style)
 		}
 	}

@@ -36,6 +36,7 @@ func main() {
 	for {
 		ev := s.PollEvent()
 		switch ev := ev.(type) {
+
 		case *tcell.EventKey:
 			switch ev.Key() {
 			case tcell.KeyCtrlQ:
@@ -49,11 +50,14 @@ func main() {
 			case tcell.KeyRight:
 				app.intoDir()
 			}
+
 			switch ev.Rune() {
 			case ' ':
 				app.toggleSelection()
 			case 'c':
 				app.copySelected()
+			case 'd':
+				app.deleteSelected()
 			case '.':
 				app.toggleHidden()
 			}

@@ -10,7 +10,7 @@ type app struct {
 	nav *nav
 
 	showHidden    bool
-	selectedFiles map[string]struct{}
+	selectedPaths map[string]struct{}
 }
 
 var (
@@ -23,7 +23,7 @@ func (a *app) init() {
 
 	a.setCursorOnVisibleFile()
 
-	a.selectedFiles = make(map[string]struct{})
+	a.selectedPaths = make(map[string]struct{})
 }
 
 func (a *app) cursorPrev() { a.nav.cursorPrev(!a.showHidden) }
@@ -42,20 +42,20 @@ func (a *app) intoDir() {
 func (a *app) toggleSelection() {
 	file := a.nav.cursorFile()
 	if a.isSelected(file) {
-		delete(a.selectedFiles, file.path)
+		delete(a.selectedPaths, file.path)
 	} else {
-		a.selectedFiles[file.path] = struct{}{}
+		a.selectedPaths[file.path] = struct{}{}
 		a.nav.cursorNext(!a.showHidden)
 	}
 }
 
 func (a *app) isSelected(file *file) bool {
-	_, ok := a.selectedFiles[file.path]
+	_, ok := a.selectedPaths[file.path]
 	return ok
 }
 
 func (a *app) copySelected() {
-	for sourcePath := range a.selectedFiles {
+	for sourcePath := range a.selectedPaths {
 		sourceName := path.Base(sourcePath)
 		destPath := path.Join(a.nav.currDir.path, sourceName)
 		err := copyFile(sourcePath, destPath)
@@ -85,4 +85,14 @@ func (a *app) visibleFiles() []*file {
 		files = append(files, f)
 	}
 	return files
+}
+
+func (a *app) deleteSelected() {
+	for p := range a.selectedPaths {
+		err := os.RemoveAll(p)
+		if err == nil {
+			log.Println("deleteSelected", err)
+		}
+		delete(a.selectedPaths, p)
+	}
 }

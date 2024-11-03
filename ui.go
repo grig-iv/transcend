@@ -9,6 +9,7 @@ import (
 type ui struct {
 	screen     tcell.Screen
 	screenSize size
+	scrollPos  int
 }
 
 type size struct {
@@ -40,12 +41,14 @@ func (ui *ui) render(app *app) {
 
 	ui.renderHeader(app)
 
+	files := app.visibleFiles()
+	cursorFile := app.nav.cursorFile()
+
+	ui.updateScrollPos(files, cursorFile)
+
 	row := headerHeigth
-	for i, f := range app.nav.files {
-		if f.isHidden() && app.showHidden == false {
-			continue
-		}
-		ui.renderFile(app, f, row, i == app.nav.cursor)
+	for _, f := range files[ui.scrollPos:] {
+		ui.renderFile(app, f, row, f == cursorFile)
 		row += 1
 	}
 
@@ -84,6 +87,30 @@ func (ui *ui) renderFile(app *app, file *file, row int, isCursorRow bool) {
 
 	for c, r := range file.Name() {
 		ui.screen.SetContent(c+3, row, r, nil, style)
+	}
+}
+
+func (ui *ui) updateScrollPos(files []*file, cursorFile *file) {
+	cursorFilePos := 0
+	for i, f := range files {
+		if f == cursorFile {
+			cursorFilePos = i
+			break
+		}
+	}
+
+	// top scroll handling
+	if ui.scrollPos+scrolloff > cursorFilePos {
+		ui.scrollPos = cursorFilePos - scrolloff
+		if ui.scrollPos < 0 {
+			ui.scrollPos = 0
+		}
+	}
+
+	// bottom scroll handling
+	viewportHeight := ui.screenSize.heigth - 1 - 1
+	if ui.scrollPos+viewportHeight-3 < cursorFilePos {
+		ui.scrollPos = cursorFilePos - viewportHeight + 3
 	}
 }
 

@@ -74,3 +74,15 @@ func (a *app) setCursorOnVisibleFile() {
 	a.nav.cursorNext(!a.showHidden)
 	a.nav.cursorPrev(!a.showHidden)
 }
+
+func (a *app) visibleFiles() []*file {
+	files := make([]*file, 0)
+	for _, f := range a.nav.files {
+		if f.isHidden() && a.showHidden == false {
+			continue
+		}
+
+		files = append(files, f)
+	}
+	return files
+}

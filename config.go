@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+var (
+	scrolloff = 3
+)
+
 var hiddenFileNames = map[string]struct{}{
 	"LICENSE":    {},
 	"flake.lock": {},

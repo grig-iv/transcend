@@ -11,7 +11,7 @@ import (
 type nav struct {
 	currDir *file
 	files   []*file
-	cursor  int
+	cursorPos  int
 }
 
 func (n *nav) init() {
@@ -28,20 +28,20 @@ func (n *nav) init() {
 }
 
 func (n *nav) cursorPrev(skipHidden bool) {
-	for i := n.cursor - 1; i >= 0; i-- {
+	for i := n.cursorPos - 1; i >= 0; i-- {
 		file := n.files[i]
 		if file.isHidden() == false || skipHidden == false {
-			n.cursor = i
+			n.cursorPos = i
 			break
 		}
 	}
 }
 
 func (n *nav) cursorNext(skipHidden bool) {
-	for i := n.cursor + 1; i < len(n.files); i++ {
+	for i := n.cursorPos + 1; i < len(n.files); i++ {
 		file := n.files[i]
 		if file.isHidden() == false || skipHidden == false {
-			n.cursor = i
+			n.cursorPos = i
 			break
 		}
 	}
@@ -52,22 +52,22 @@ func (n *nav) upDir() {
 	n.chDir(n.currDir.parentPath())
 	for i, f := range n.files {
 		if f.path == prevDir.path {
-			n.cursor = i
+			n.cursorPos = i
 			break
 		}
 	}
 }
 
 func (n *nav) intoDir() {
-	curr := n.files[n.cursor]
+	curr := n.files[n.cursorPos]
 	if curr.IsDir() {
 		n.chDir(filepath.Join(n.currDir.path, curr.Name()))
 	}
-	n.cursor = 0
+	n.cursorPos = 0
 }
 
 func (n *nav) cursorFile() *file {
-	return n.files[n.cursor]
+	return n.files[n.cursorPos]
 }
 
 func (n *nav) chDir(path string) {

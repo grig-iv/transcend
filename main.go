@@ -8,14 +8,7 @@ import (
 )
 
 func main() {
-	f, err := os.OpenFile("log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
-	f.Truncate(0)
-
-	log.SetOutput(f)
+	logToFile("log")
 
 	s, err := tcell.NewScreen()
 	if err != nil {
@@ -66,4 +59,15 @@ func main() {
 
 		ui.render(app)
 	}
+}
+
+func logToFile(path string) func() {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_APPEND|os.O_TRUNC, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+
+	log.SetOutput(f)
+
+	return func() { f.Close() }
 }

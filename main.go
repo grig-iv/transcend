@@ -54,6 +54,8 @@ func main() {
 				app.toggleSelection()
 			case 'c':
 				app.copySelected()
+			case '.':
+				app.toggleHidden()
 			}
 		case *tcell.EventResize:
 			ui.onResize()

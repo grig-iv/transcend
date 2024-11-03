@@ -16,24 +16,36 @@ type nav struct {
 }
 
 func (n *nav) init() {
+	for p := range hiddenPaths {
+		if strings.HasPrefix(p, "~/") {
+			fullPath := strings.Replace(p, "~/", homeDir, 1)
+			delete(hiddenPaths, p)
+			hiddenPaths[fullPath] = struct{}{}
+		}
+	}
+
 	n.files = make([]*file, 0)
 	n.chDir("/home/grig/sources/transcend")
 }
 
-func (n *nav) cursorPrev() {
-	if n.cursor == 0 {
-		return
+func (n *nav) cursorPrev(skipHidden bool) {
+	for i := n.cursor - 1; i >= 0; i-- {
+		file := n.files[i]
+		if file.isHidden() == false || skipHidden == false {
+			n.cursor = i
+			break
+		}
 	}
-
-	n.cursor -= 1
 }
 
-func (n *nav) cursorNext() {
-	if n.cursor == len(n.files)-1 {
-		return
+func (n *nav) cursorNext(skipHidden bool) {
+	for i := n.cursor + 1; i < len(n.files); i++ {
+		file := n.files[i]
+		if file.isHidden() == false || skipHidden == false {
+			n.cursor = i
+			break
+		}
 	}
-
-	n.cursor += 1
 }
 
 func (n *nav) upDir() {
@@ -148,4 +160,30 @@ func (f *file) ext() string {
 		return ""
 	}
 	return strings.TrimPrefix(ext, ".")
+}
+
+var hiddenFileNames = map[string]struct{}{
+	"LICENSE":    {},
+	"flake.lock": {},
+}
+
+var hiddenPaths = map[string]struct{}{
+	"~/go":    {},
+	"~/steam": {},
+}
+
+func (f *file) isHidden() bool {
+	if strings.HasPrefix(f.Name(), ".") {
+		return true
+	}
+
+	if _, ok := hiddenFileNames[f.Name()]; ok {
+		return true
+	}
+
+	if _, ok := hiddenPaths[f.path]; ok {
+		return true
+	}
+
+	return false
 }

@@ -40,8 +40,13 @@ func (ui *ui) render(app *app) {
 
 	ui.renderHeader(app)
 
+	row := headerHeigth
 	for i, f := range app.nav.files {
-		ui.renderFile(app, f, i)
+		if f.isHidden() && app.showHidden == false {
+			continue
+		}
+		ui.renderFile(app, f, row, i == app.nav.cursor)
+		row += 1
 	}
 
 	ui.screen.Show()
@@ -53,11 +58,9 @@ func (ui *ui) renderHeader(app *app) {
 	}
 }
 
-func (ui *ui) renderFile(app *app, file *file, index int) {
-	row := index + headerHeigth
-
+func (ui *ui) renderFile(app *app, file *file, row int, isCursorRow bool) {
 	style := fileStyle
-	if index == app.nav.cursor {
+	if isCursorRow {
 		style = cursorFileStyle
 	}
 
@@ -73,11 +76,11 @@ func (ui *ui) renderFile(app *app, file *file, index int) {
 
 	icon := getIcon(file)
 	iconStyle := style
-	if icon.fgColorDark != "" && index != app.nav.cursor {
+	if icon.fgColorDark != "" && isCursorRow == false {
 		iconStyle = style.Foreground(tcell.GetColor(icon.fgColorDark))
 	}
 	r, _ := utf8.DecodeRuneInString(icon.text)
-	ui.screen.SetContent(1, index+1, r, nil, iconStyle)
+	ui.screen.SetContent(1, row, r, nil, iconStyle)
 
 	for c, r := range file.Name() {
 		ui.screen.SetContent(c+3, row, r, nil, style)

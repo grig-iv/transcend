@@ -48,17 +48,17 @@ func main() {
 			case tcell.KeyCtrlQ:
 				return
 			case tcell.KeyDown:
-				app.nav.cursorNext()
+				app.cursorNext()
 			case tcell.KeyUp:
-				app.nav.cursorPrev()
+				app.cursorPrev()
 			case tcell.KeyLeft:
-				app.nav.upDir()
+				app.upDir()
 			case tcell.KeyRight:
-				app.nav.intoDir()
+				app.intoDir()
 			}
 			switch ev.Rune() {
 			case ' ':
-				app.toggleSelection(app.nav.cursorFile())
+				app.toggleSelection()
 			}
 		case *tcell.EventResize:
 			ui.onResize()

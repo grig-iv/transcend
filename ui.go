@@ -13,6 +13,10 @@ type size struct {
 	width, heigth int
 }
 
+const (
+	headerHeigth = 1
+)
+
 var (
 	headerStyle        = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorGreen)
 	fileStyle          = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorWhite)
@@ -48,24 +52,24 @@ func (ui *ui) renderHeader(app *app) {
 }
 
 func (ui *ui) renderFile(app *app, file *file, index int) {
+	row := index + headerHeigth
+
 	style := fileStyle
 	if index == app.nav.cursor {
 		style = cursorFileStyle
 	}
 
-	if app.isSelected(file) {
-		ui.screen.SetContent(0, index+1, ' ', nil, selectedIndication)
-	} else {
-		ui.screen.SetContent(0, index+1, ' ', nil, style)
-	}
-
-	lastPos := 0
-	for c, r := range file.Name() {
-		ui.screen.SetContent(c+1, index+1, r, nil, style)
-		lastPos = c
-	}
-
 	for c := range ui.screenSize.width {
-		ui.screen.SetContent(lastPos+c+2, index+1, ' ', nil, style)
+		ui.screen.SetContent(c, row, ' ', nil, style)
+	}
+
+	if app.isSelected(file) {
+		ui.screen.SetContent(0, row, ' ', nil, selectedIndication)
+	} else {
+		ui.screen.SetContent(0, row, ' ', nil, style)
+	}
+
+	for c, r := range file.Name() {
+		ui.screen.SetContent(c+1, row, r, nil, style)
 	}
 }

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"cmp"
 	"log"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 )
 
@@ -96,7 +98,26 @@ func readdir(path string) ([]*file, error) {
 		}
 	}
 
+	slices.SortFunc(files, sortCmp)
+
 	return files, err
+}
+
+func sortCmp(lhs, rhs *file) int {
+	if lhs.IsDir() != rhs.IsDir() {
+		if lhs.IsDir() {
+			return -1
+		} else {
+			return 1
+		}
+	}
+
+	extCmp := cmp.Compare(lhs.ext(), rhs.ext())
+	if extCmp != 0 {
+		return extCmp
+	}
+
+	return cmp.Compare(lhs.Name(), rhs.Name())
 }
 
 type file struct {
@@ -120,7 +141,11 @@ func (f *file) parentPath() string {
 	return filepath.Dir(f.path)
 }
 
+// extension without dot
 func (f *file) ext() string {
 	ext := filepath.Ext(f.Name())
+	if ext == f.Name() {
+		return ""
+	}
 	return strings.TrimPrefix(ext, ".")
 }

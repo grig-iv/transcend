@@ -9,15 +9,15 @@ var (
 	scrolloff = 3
 )
 
-var hiddenFileNames = map[string]struct{}{
-	"LICENSE":    {},
-	"flake.lock": {},
-}
+var hiddenFileNames = newHiddenFileNames(
+	"LICENSE",
+	"flake.lock",
+)
 
-var hiddenPaths = map[string]struct{}{
-	"~/go":    {},
-	"~/steam": {},
-}
+var hiddenPaths = newHiddenPaths(
+	"~/go",
+	"~/steam",
+)
 
 func (f *file) isHidden() bool {
 	if strings.HasPrefix(f.Name(), ".") {

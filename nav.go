@@ -9,20 +9,12 @@ import (
 )
 
 type nav struct {
-	currDir *file
-	files   []*file
-	cursorPos  int
+	currDir   *file
+	files     []*file
+	cursorPos int
 }
 
 func (n *nav) init() {
-	for p := range hiddenPaths {
-		if strings.HasPrefix(p, "~/") {
-			fullPath := strings.Replace(p, "~/", homeDir, 1)
-			delete(hiddenPaths, p)
-			hiddenPaths[fullPath] = struct{}{}
-		}
-	}
-
 	n.files = make([]*file, 0)
 	n.chDir("/home/grig/sources/transcend")
 }

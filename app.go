@@ -18,6 +18,7 @@ func (a *app) toggleSelection(file *file) {
 		delete(a.selectedFiles, file.path)
 	} else {
 		a.selectedFiles[file.path] = struct{}{}
+		a.nav.cursorNext()
 	}
 }
 

@@ -61,6 +61,14 @@ func main() {
 			case '.':
 				app.toggleHidden()
 			}
+
+			switch ev.Name() {
+			case "Ctrl+PgDn":
+				app.cursorLast()
+			case "Ctrl+PgUp":
+				app.cursorFirst()
+			}
+
 		case *tcell.EventResize:
 			ui.onResize()
 		}

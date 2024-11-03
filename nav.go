@@ -39,6 +39,26 @@ func (n *nav) cursorNext(skipHidden bool) {
 	}
 }
 
+func (n *nav) cursorLast(skipHidden bool) {
+	for i := len(n.files) - 1; i >= 0; i-- {
+		file := n.files[i]
+		if file.isHidden() == false || skipHidden == false {
+			n.cursorPos = i
+			break
+		}
+	}
+}
+
+func (n *nav) cursorFirst(skipHidden bool) {
+	for i := 0; i < len(n.files); i++ {
+		file := n.files[i]
+		if file.isHidden() == false || skipHidden == false {
+			n.cursorPos = i
+			break
+		}
+	}
+}
+
 func (n *nav) upDir() {
 	prevDir := n.currDir
 	n.chDir(n.currDir.parentPath())

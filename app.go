@@ -27,8 +27,10 @@ func (a *app) init() {
 	a.selectedPaths = make(map[string]struct{})
 }
 
-func (a *app) cursorPrev() { a.nav.cursorPrev(!a.showHidden) }
-func (a *app) cursorNext() { a.nav.cursorNext(!a.showHidden) }
+func (a *app) cursorPrev()  { a.nav.cursorPrev(!a.showHidden) }
+func (a *app) cursorNext()  { a.nav.cursorNext(!a.showHidden) }
+func (a *app) cursorLast()  { a.nav.cursorLast(!a.showHidden) }
+func (a *app) cursorFirst() { a.nav.cursorFirst(!a.showHidden) }
 
 func (a *app) upDir() {
 	a.nav.upDir()

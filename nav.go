@@ -1,7 +1,6 @@
 package main
 
 import (
-	"cmp"
 	"log"
 	"os"
 	"path/filepath"
@@ -110,26 +109,9 @@ func readdir(path string) ([]*file, error) {
 		}
 	}
 
-	slices.SortFunc(files, sortCmp)
+	slices.SortFunc(files, sortFunc)
 
 	return files, err
-}
-
-func sortCmp(lhs, rhs *file) int {
-	if lhs.IsDir() != rhs.IsDir() {
-		if lhs.IsDir() {
-			return -1
-		} else {
-			return 1
-		}
-	}
-
-	extCmp := cmp.Compare(lhs.ext(), rhs.ext())
-	if extCmp != 0 {
-		return extCmp
-	}
-
-	return cmp.Compare(lhs.Name(), rhs.Name())
 }
 
 type file struct {
@@ -160,30 +142,4 @@ func (f *file) ext() string {
 		return ""
 	}
 	return strings.TrimPrefix(ext, ".")
-}
-
-var hiddenFileNames = map[string]struct{}{
-	"LICENSE":    {},
-	"flake.lock": {},
-}
-
-var hiddenPaths = map[string]struct{}{
-	"~/go":    {},
-	"~/steam": {},
-}
-
-func (f *file) isHidden() bool {
-	if strings.HasPrefix(f.Name(), ".") {
-		return true
-	}
-
-	if _, ok := hiddenFileNames[f.Name()]; ok {
-		return true
-	}
-
-	if _, ok := hiddenPaths[f.path]; ok {
-		return true
-	}
-
-	return false
 }

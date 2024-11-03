@@ -52,6 +52,8 @@ func main() {
 			switch ev.Rune() {
 			case ' ':
 				app.toggleSelection()
+			case 'c':
+				app.copySelected()
 			}
 		case *tcell.EventResize:
 			ui.onResize()

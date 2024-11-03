@@ -1,5 +1,10 @@
 package main
 
+import (
+	"log"
+	"path"
+)
+
 type app struct {
 	nav *nav
 
@@ -31,4 +36,15 @@ func (a *app) toggleSelection() {
 func (a *app) isSelected(file *file) bool {
 	_, ok := a.selectedFiles[file.path]
 	return ok
+}
+
+func (a *app) copySelected() {
+	for sourcePath := range a.selectedFiles {
+		sourceName := path.Base(sourcePath)
+		destPath := path.Join(a.nav.currDir.path, sourceName)
+		err := copyFile(sourcePath, destPath)
+		if err != nil {
+			log.Println(err)
+		}
+	}
 }

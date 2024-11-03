@@ -1,6 +1,8 @@
 package main
 
 import (
+	"unicode/utf8"
+
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -69,7 +71,27 @@ func (ui *ui) renderFile(app *app, file *file, index int) {
 		ui.screen.SetContent(0, row, ' ', nil, style)
 	}
 
-	for c, r := range file.Name() {
-		ui.screen.SetContent(c+1, row, r, nil, style)
+	icon := getIcon(file)
+	iconStyle := style
+	if icon.fgColorDark != "" && index != app.nav.cursor {
+		iconStyle = style.Foreground(tcell.GetColor(icon.fgColorDark))
 	}
+	r, _ := utf8.DecodeRuneInString(icon.text)
+	ui.screen.SetContent(1, index+1, r, nil, iconStyle)
+
+	for c, r := range file.Name() {
+		ui.screen.SetContent(c+3, row, r, nil, style)
+	}
+}
+
+func getIcon(file *file) icon {
+	if icon, ok := extToIcon[file.ext()]; ok {
+		return icon
+	}
+
+	if file.IsDir() {
+		return fallbackDirIcon
+	}
+
+	return fallbackFileIcon
 }

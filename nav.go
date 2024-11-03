@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type nav struct {
@@ -117,4 +118,9 @@ func newFile(path string) (*file, error) {
 
 func (f *file) parentPath() string {
 	return filepath.Dir(f.path)
+}
+
+func (f *file) ext() string {
+	ext := filepath.Ext(f.Name())
+	return strings.TrimPrefix(ext, ".")
 }

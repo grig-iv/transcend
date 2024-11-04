@@ -78,15 +78,15 @@ func (n *nav) intoDir() {
 	n.cursorPos = 0
 }
 
+func (n *nav) refreshCurrDir() {
+	n.chDir(n.currDir.path)
+}
+
 func (n *nav) cursorFile() *file {
 	return n.files[n.cursorPos]
 }
 
 func (n *nav) chDir(path string) {
-	if n.currDir != nil && n.currDir.path == path {
-		return
-	}
-
 	var err error
 
 	n.currDir, err = newFile(path)

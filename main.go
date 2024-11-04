@@ -10,17 +10,11 @@ import (
 func main() {
 	logToFile("log")
 
-	s, err := tcell.NewScreen()
-	if err != nil {
-		log.Fatalf("%+v", err)
-	}
-	if err := s.Init(); err != nil {
-		log.Fatalf("%+v", err)
-	}
+	screen, screenEventCh := initScreen()
 
 	quit := func() {
 		maybePanic := recover()
-		s.Fini()
+		screen.Fini()
 		if maybePanic != nil {
 			panic(maybePanic)
 		}
@@ -31,49 +25,57 @@ func main() {
 	app.init()
 
 	ui := &ui{}
-	ui.init(s)
+	ui.init(screen)
 
 	for {
-		ev := s.PollEvent()
-		switch ev := ev.(type) {
+		select {
+		case ev := <-screenEventCh:
+			switch ev := ev.(type) {
 
-		case *tcell.EventKey:
-			switch ev.Key() {
-			case tcell.KeyCtrlQ:
-				return
-			case tcell.KeyDown:
-				app.cursorNext()
-			case tcell.KeyUp:
-				app.cursorPrev()
-			case tcell.KeyLeft:
-				app.upDir()
-			case tcell.KeyRight:
-				app.intoDir()
+			case *tcell.EventKey:
+				switch ev.Key() {
+				case tcell.KeyCtrlQ:
+					return
+				case tcell.KeyDown:
+					app.cursorNext()
+				case tcell.KeyUp:
+					app.cursorPrev()
+				case tcell.KeyLeft:
+					app.upDir()
+				case tcell.KeyRight:
+					app.intoDir()
+				}
+
+				switch ev.Rune() {
+				case ' ':
+					app.toggleSelection()
+				case 'c':
+					app.copySelected()
+				case 'd':
+					app.deleteSelected()
+				case '.':
+					app.toggleHidden()
+				}
+
+				switch ev.Name() {
+				case "Ctrl+PgDn":
+					app.cursorLast()
+				case "Ctrl+PgUp":
+					app.cursorFirst()
+				}
+
+			case *tcell.EventResize:
+				ui.onResize()
 			}
+			ui.render(app)
 
-			switch ev.Rune() {
-			case ' ':
-				app.toggleSelection()
-			case 'c':
-				app.copySelected()
-			case 'd':
-				app.deleteSelected()
-			case '.':
-				app.toggleHidden()
+		case watchEv := <-app.watch.events:
+			redraw := app.onWatchEvent(watchEv)
+			if redraw {
+				ui.render(app)
 			}
-
-			switch ev.Name() {
-			case "Ctrl+PgDn":
-				app.cursorLast()
-			case "Ctrl+PgUp":
-				app.cursorFirst()
-			}
-
-		case *tcell.EventResize:
-			ui.onResize()
 		}
 
-		ui.render(app)
 	}
 }
 
@@ -86,4 +88,24 @@ func logToFile(path string) func() {
 	log.SetOutput(f)
 
 	return func() { f.Close() }
+}
+
+func initScreen() (tcell.Screen, <-chan tcell.Event) {
+	s, err := tcell.NewScreen()
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+	if err := s.Init(); err != nil {
+		log.Fatalf("%+v", err)
+	}
+
+	eventCh := make(chan tcell.Event)
+
+	go func() {
+		for {
+			eventCh <- s.PollEvent()
+		}
+	}()
+
+	return s, eventCh
 }

@@ -2,7 +2,10 @@ module github.com/grig-iv/transcend
 
 go 1.22.6
 
-require github.com/gdamore/tcell/v2 v2.7.4
+require (
+	github.com/fsnotify/fsnotify v1.8.0
+	github.com/gdamore/tcell/v2 v2.7.4
+)
 
 require (
 	github.com/gdamore/encoding v1.0.0 // indirect

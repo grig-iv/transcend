@@ -5,10 +5,13 @@ import (
 	"log"
 	"os"
 	"path"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 type app struct {
-	nav *nav
+	nav   *nav
+	watch *watch
 
 	showHidden    bool
 	selectedPaths map[string]struct{}
@@ -22,9 +25,12 @@ func (a *app) init() {
 	a.nav = &nav{}
 	a.nav.init()
 
-	a.setCursorOnVisibleFile()
+	a.watch = newWatch()
+	a.watch.add(a.nav.currDir.path)
 
 	a.selectedPaths = make(map[string]struct{})
+
+	a.setCursorOnVisibleFile()
 }
 
 func (a *app) cursorPrev()  { a.nav.cursorPrev(!a.showHidden) }
@@ -33,12 +39,16 @@ func (a *app) cursorLast()  { a.nav.cursorLast(!a.showHidden) }
 func (a *app) cursorFirst() { a.nav.cursorFirst(!a.showHidden) }
 
 func (a *app) upDir() {
+	a.watch.remove(a.nav.currDir.path)
 	a.nav.upDir()
+	a.watch.add(a.nav.currDir.path)
 	a.setCursorOnVisibleFile()
 }
 
 func (a *app) intoDir() {
+	a.watch.remove(a.nav.currDir.path)
 	a.nav.intoDir()
+	a.watch.add(a.nav.currDir.path)
 	a.setCursorOnVisibleFile()
 }
 
@@ -93,7 +103,7 @@ func (a *app) visibleFiles() []*file {
 func (a *app) deleteSelected() {
 	for p := range a.selectedPaths {
 		err := os.RemoveAll(p)
-		if err == nil {
+		if err != nil {
 			log.Println("deleteSelected", err)
 		}
 		delete(a.selectedPaths, p)
@@ -126,4 +136,15 @@ func copyFile(srcPath, dstPath string) error {
 	}
 
 	return nil
+}
+
+func (a *app) onWatchEvent(event fsnotify.Event) bool {
+	if event.Has(fsnotify.Create|fsnotify.Remove) &&
+		path.Dir(event.Name) == a.nav.currDir.path {
+		a.nav.refreshCurrDir()
+		a.setCursorOnVisibleFile()
+		return true
+	}
+
+	return false
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"os"
-	"strings"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -28,6 +27,8 @@ func main() {
 	ui := &ui{}
 	ui.init(screen)
 
+	input := input{}
+
 	for {
 		select {
 		case <-app.quitChan:
@@ -37,10 +38,7 @@ func main() {
 		case ev := <-screenEventCh:
 			switch ev := ev.(type) {
 			case *tcell.EventKey:
-				handler, ok := keybindings[strings.ToLower(ev.Name())]
-				if ok {
-					handler(app)
-				}
+				input.handle(ev, app)
 			case *tcell.EventResize:
 				ui.onResize()
 			}

@@ -15,6 +15,8 @@ type app struct {
 
 	showHidden    bool
 	selectedPaths map[string]struct{}
+
+	quitChan chan struct{}
 }
 
 var (
@@ -29,6 +31,8 @@ func (a *app) init() {
 	a.watch.add(a.nav.currDir.path)
 
 	a.selectedPaths = make(map[string]struct{})
+
+	a.quitChan = make(chan struct{})
 
 	a.setCursorOnVisibleFile()
 }
@@ -147,4 +151,10 @@ func (a *app) onWatchEvent(event fsnotify.Event) bool {
 	}
 
 	return false
+}
+
+func (a *app) quit() {
+	go func() {
+		a.quitChan <- struct{}{}
+	}()
 }

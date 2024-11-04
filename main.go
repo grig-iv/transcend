@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -29,41 +30,17 @@ func main() {
 
 	for {
 		select {
+		case <-app.quitChan:
+			app.watch.close()
+			return
+
 		case ev := <-screenEventCh:
 			switch ev := ev.(type) {
-
 			case *tcell.EventKey:
-				switch ev.Key() {
-				case tcell.KeyCtrlQ:
-					return
-				case tcell.KeyDown:
-					app.cursorNext()
-				case tcell.KeyUp:
-					app.cursorPrev()
-				case tcell.KeyLeft:
-					app.upDir()
-				case tcell.KeyRight:
-					app.intoDir()
+				handler, ok := keybindings[strings.ToLower(ev.Name())]
+				if ok {
+					handler(app)
 				}
-
-				switch ev.Rune() {
-				case ' ':
-					app.toggleSelection()
-				case 'c':
-					app.copySelected()
-				case 'd':
-					app.deleteSelected()
-				case '.':
-					app.toggleHidden()
-				}
-
-				switch ev.Name() {
-				case "Ctrl+PgDn":
-					app.cursorLast()
-				case "Ctrl+PgUp":
-					app.cursorFirst()
-				}
-
 			case *tcell.EventResize:
 				ui.onResize()
 			}
@@ -75,7 +52,6 @@ func main() {
 				ui.render(app)
 			}
 		}
-
 	}
 }
 

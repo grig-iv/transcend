@@ -80,5 +80,4 @@ func (w *watch) sync() {
 
 func (w *watch) close() {
 	w.watcher.Close()
-	close(w.events)
 }

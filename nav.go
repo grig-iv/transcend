@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -16,7 +17,12 @@ type nav struct {
 
 func (n *nav) init() {
 	n.files = make([]*file, 0)
-	n.chDir("/home/grig/sources/transcend")
+
+	if args.Dir != "" {
+		n.chDir(args.Dir)
+	} else {
+		n.chDir(path.Dir(os.Args[0]))
+	}
 }
 
 func (n *nav) cursorPrev(skipHidden bool) {

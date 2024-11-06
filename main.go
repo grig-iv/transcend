@@ -1,25 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
+	"github.com/alexflint/go-arg"
 	"github.com/gdamore/tcell/v2"
 )
 
+var args struct {
+	Dir          string
+	PrintLastDir bool `arg:"--print-last-dir"`
+}
+
 func main() {
+	arg.MustParse(&args)
+
 	logToFile("log")
 
 	screen, screenEventCh := initScreen()
-
-	quit := func() {
-		maybePanic := recover()
-		screen.Fini()
-		if maybePanic != nil {
-			panic(maybePanic)
-		}
-	}
-	defer quit()
 
 	app := &app{}
 	app.init()
@@ -28,6 +28,18 @@ func main() {
 	ui.init(screen)
 
 	input := input{}
+
+	quit := func() {
+		maybePanic := recover()
+		screen.Fini()
+		if maybePanic != nil {
+			panic(maybePanic)
+		}
+		if args.PrintLastDir {
+			fmt.Print(app.nav.currDir.path)
+		}
+	}
+	defer quit()
 
 	for {
 		select {
